@@ -1,19 +1,18 @@
 #ifndef _GRAPH_JRB_H_
 #define _GRAPH_JRB_H_
 
-#include "../jrb/jrb.h"
 #include "../dllist/dllist.h"
+#include "../jrb/jrb.h"
 
-#define BOOL_TRUE 1
+#define BOOL_TRUE  1
 #define BOOL_FALSE 0
 
 #define UNDIRECTED 0
-#define DIRECTED 1
+#define DIRECTED   1
 
 #define INFINITIVE_VALUE 100000000
 
-typedef struct
-{
+typedef struct {
   JRB edges;
   JRB vertices;
   int type;
@@ -67,15 +66,15 @@ extern char *getVertex(Graph graph, long id);
 extern int getVertexId(Graph graph, char *name);
 extern double getEdgeValue(Graph graph, int v1, int v2);
 
-extern int getVertexNum(Graph graph); // Đếm số đỉnh
-extern int getEdgeNum(Graph graph);   // Đếm số cạnh
+extern int getVertexNum(Graph graph);   // Đếm số đỉnh
+extern int getEdgeNum(Graph graph);     // Đếm số cạnh
 
-extern int indegree(Graph graph, // Cho ra array output
-                    int v,       // các nodes đi vào đỉnh v
+extern int indegree(Graph graph,   // Cho ra array output
+                    int v,         // các nodes đi vào đỉnh v
                     int *output);
 
-extern int outdegree(Graph graph, // Cho ra array output
-                     long v,      // các nodes đi ra từ đỉnh v
+extern int outdegree(Graph graph,   // Cho ra array output
+                     long v,        // các nodes đi ra từ đỉnh v
                      long *output);
 
 // ------------------------------------------------------------
@@ -93,6 +92,6 @@ extern int outdegree(Graph graph, // Cho ra array output
 extern int hasEdge(Graph graph, Jval v1, Jval v2);
 
 extern int DFS(Graph graph, long graph_size, long start, long stop, long *path);
-extern int connectedComponents(Graph graph, long graph_size,  char *filename);
+extern int connectedComponents(Graph graph, long graph_size, char *filename);
 
 #endif

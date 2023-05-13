@@ -40,8 +40,7 @@ Fax: 865-974-4404
 
 /* The Jval -- a type that can hold any 8-byte type */
 
-typedef union
-{
+typedef union {
   int i;
   long l;
   float f;

@@ -35,9 +35,9 @@ Knoxville, TN 37996-3450
 Fax: 865-974-4404
 */
 
+#include "dllist.h"
 #include <stdio.h> /* Basic includes and definitions */
 #include <stdlib.h>
-#include "dllist.h"
 
 /*---------------------------------------------------------------------*
  * PROCEDURES FOR MANIPULATING DOUBLY LINKED LISTS
@@ -46,11 +46,10 @@ Fax: 865-974-4404
  * If l is empty, then l->flink = l->blink = l.
  *---------------------------------------------------------------------*/
 
-Dllist new_dllist()
-{
+Dllist new_dllist() {
   Dllist d;
 
-  d = (Dllist)malloc(sizeof(struct dllist));
+  d = (Dllist) malloc(sizeof(struct dllist));
   d->flink = d;
   d->blink = d;
   return d;
@@ -60,7 +59,7 @@ void dll_insert_before(Dllist node, Jval v) /* Inserts before a given node */
 {
   Dllist newnode;
 
-  newnode = (Dllist)malloc(sizeof(struct dllist));
+  newnode = (Dllist) malloc(sizeof(struct dllist));
   newnode->val = v;
 
   newnode->flink = node;
@@ -91,21 +90,13 @@ void dll_delete_node(Dllist node) /* Deletes an arbitrary iterm */
   free(node);
 }
 
-int dll_empty(Dllist l)
-{
-  return (l->flink == l);
-}
+int dll_empty(Dllist l) { return (l->flink == l); }
 
-void free_dllist(Dllist l)
-{
-  while (!dll_empty(l))
-  {
+void free_dllist(Dllist l) {
+  while (!dll_empty(l)) {
     dll_delete_node(dll_first(l));
   }
   free(l);
 }
 
-Jval dll_val(Dllist l)
-{
-  return l->val;
-}
+Jval dll_val(Dllist l) { return l->val; }

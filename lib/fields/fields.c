@@ -35,35 +35,30 @@ Knoxville, TN 37996-3450
 Fax: 865-974-4404
 */
 
+#include "fields.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include "fields.h"
 
-#define talloc(ty, sz) (ty *)malloc(sz * sizeof(ty))
-#define strdup(s) ((char *)strcpy(talloc(char, strlen(s) + 1), s))
+#define talloc(ty, sz) (ty *) malloc(sz * sizeof(ty))
+#define strdup(s)      ((char *) strcpy(talloc(char, strlen(s) + 1), s))
 
 /**
  * @brief Creates a new inputstruct
  * @param filename The absolute path of the file to be read
- * @param key "f" for regular file or stdin if filename is NULL, "p" if filename is a command for popen
+ * @param key "f" for regular file or stdin if filename is NULL, "p" if filename
+ * is a command for popen
  */
-static IS make_inputstruct(char *filename, char *key)
-{
+static IS make_inputstruct(char *filename, char *key) {
   IS is;
   int file;
 
-  if (strcmp(key, "f") == 0)
-  {
+  if (strcmp(key, "f") == 0) {
     file = 1;
-  }
-  else if (strcmp(key, "p") == 0)
-  {
+  } else if (strcmp(key, "p") == 0) {
     file = 0;
-  }
-  else
-  {
+  } else {
     return NULL;
   }
 
@@ -72,25 +67,18 @@ static IS make_inputstruct(char *filename, char *key)
   is->text1[MAXLEN - 1] = '\0';
   is->NF = 0;
   is->line = 0;
-  if (filename == NULL)
-  {
+  if (filename == NULL) {
     is->name = "stdin";
     is->f = stdin;
-  }
-  else
-  {
+  } else {
     is->name = filename;
     is->file = file;
-    if (file)
-    {
+    if (file) {
       is->f = fopen(filename, "r");
-    }
-    else
-    {
+    } else {
       is->f = popen(filename, "r");
     }
-    if (is->f == NULL)
-    {
+    if (is->f == NULL) {
       free(is);
       return NULL;
     }
@@ -103,13 +91,9 @@ IS new_inputstruct(char *filename) /* use NULL for stdin.  Calls malloc */
   return make_inputstruct(filename, "f");
 }
 
-IS pipe_inputstruct(char *command)
-{
-  return make_inputstruct(command, "p");
-}
+IS pipe_inputstruct(char *command) { return make_inputstruct(command, "p"); }
 
-int get_line(IS is)
-{
+int get_line(IS is) {
   int i, len;
   int f;
   char *tmp;
@@ -118,8 +102,7 @@ int get_line(IS is)
 
   is->NF = 0;
 
-  if (fgets(is->text1, MAXLEN - 1, is->f) == NULL)
-  {
+  if (fgets(is->text1, MAXLEN - 1, is->f) == NULL) {
     is->NF = -1;
     return -1;
   }
@@ -129,17 +112,12 @@ int get_line(IS is)
 
   line = is->text2;
   lastchar = ' ';
-  for (i = 0; line[i] != '\0' && i < MAXLEN - 1; i++)
-  {
-    if (isspace(line[i]))
-    {
+  for (i = 0; line[i] != '\0' && i < MAXLEN - 1; i++) {
+    if (isspace(line[i])) {
       lastchar = line[i];
       line[i] = '\0';
-    }
-    else
-    {
-      if (isspace(lastchar))
-      {
+    } else {
+      if (isspace(lastchar)) {
         is->fields[is->NF] = line + i;
         is->NF++;
       }
@@ -149,16 +127,11 @@ int get_line(IS is)
   return is->NF;
 }
 
-void jettison_inputstruct(IS is)
-{
-  if (is->f != stdin)
-  {
-    if (is->file)
-    {
+void jettison_inputstruct(IS is) {
+  if (is->f != stdin) {
+    if (is->file) {
       fclose(is->f);
-    }
-    else
-    {
+    } else {
       pclose(is->f);
     }
   }

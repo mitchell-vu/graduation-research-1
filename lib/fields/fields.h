@@ -8,11 +8,10 @@
 
 #include <stdio.h>
 #include <string.h>
-#define MAXLEN 1001
+#define MAXLEN    1001
 #define MAXFIELDS 1000
 
-typedef struct inputstruct
-{
+typedef struct inputstruct {
   const char *name;        /* File name */
   FILE *f;                 /* File descriptor */
   int line;                /* Line number */

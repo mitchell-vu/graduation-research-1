@@ -40,8 +40,7 @@ Fax: 865-974-4404
 
 #include "../jval/jval.h"
 
-typedef struct dllist
-{
+typedef struct dllist {
   struct dllist *flink;
   struct dllist *blink;
   Jval val;
@@ -97,24 +96,23 @@ extern Jval dll_val(Dllist);
 // Traversing Macros
 //--------------------------------------------------------------
 
-#define dll_traverse(ptr, list) \
-  for (ptr = list->flink; ptr != list; ptr = ptr->flink)
-#define dll_rtraverse(ptr, list) \
-  for (ptr = list->blink; ptr != list; ptr = ptr->blink)
+#define dll_traverse(ptr, list)  for (ptr = list->flink; ptr != list; ptr = ptr->flink)
+#define dll_rtraverse(ptr, list) for (ptr = list->blink; ptr != list; ptr = ptr->blink)
 
 //--------------------------------------------------------------
 // Optional Macros: These just make your code more readable.
 //--------------------------------------------------------------
 
 #define dll_first(d) ((d)->flink)
-#define dll_next(d) ((d)->flink)
-#define dll_last(d) ((d)->blink)
-#define dll_prev(d) ((d)->blink)
+#define dll_next(d)  ((d)->flink)
+#define dll_last(d)  ((d)->blink)
+#define dll_prev(d)  ((d)->blink)
 
 /**
  * @brief Returns a pointer to the nil (sentinel) node for the list.
  * @note You don't need to call dll_nil() to access the sentinel node.
- *       You can just use d, although it makes your code more readable if you use dll_nil().
+ *       You can just use d, although it makes your code more readable if you
+ * use dll_nil().
  */
 #define dll_nil(d) (d)
 

@@ -46,8 +46,7 @@ Fax: 865-974-4404
  * v.val
  */
 
-typedef struct jrb_node
-{
+typedef struct jrb_node {
   unsigned char red;
   unsigned char internal;
   unsigned char left;
@@ -89,8 +88,7 @@ extern JRB jrb_find_gen(JRB root, Jval, int (*func)(Jval, Jval));
 extern JRB jrb_find_gte_str(JRB root, char *key, int *found);
 extern JRB jrb_find_gte_int(JRB root, int ikey, int *found);
 extern JRB jrb_find_gte_dbl(JRB root, double dkey, int *found);
-extern JRB jrb_find_gte_gen(JRB root, Jval key,
-                            int (*func)(Jval, Jval), int *found);
+extern JRB jrb_find_gte_gen(JRB root, Jval key, int (*func)(Jval, Jval), int *found);
 
 /** Creates a node with key key and val val and inserts it into the
  *  tree before/after node nd.  Does not check to ensure that you are
@@ -116,20 +114,18 @@ int jrb_plength(JRB n);
 // Traversing Macros
 //--------------------------------------------------------------
 
-#define jrb_traverse(ptr, lst) \
-  for (ptr = jrb_first(lst); ptr != jrb_nil(lst); ptr = jrb_next(ptr))
+#define jrb_traverse(ptr, lst) for (ptr = jrb_first(lst); ptr != jrb_nil(lst); ptr = jrb_next(ptr))
 
-#define jrb_rtraverse(ptr, lst) \
-  for (ptr = jrb_last(lst); ptr != jrb_nil(lst); ptr = jrb_prev(ptr))
+#define jrb_rtraverse(ptr, lst) for (ptr = jrb_last(lst); ptr != jrb_nil(lst); ptr = jrb_prev(ptr))
 
 //--------------------------------------------------------------
 // Optional Macros: These just make your code more readable.
 //--------------------------------------------------------------
 
 #define jrb_first(n) (n->flink)
-#define jrb_last(n) (n->blink)
-#define jrb_next(n) (n->flink)
-#define jrb_prev(n) (n->blink)
+#define jrb_last(n)  (n->blink)
+#define jrb_next(n)  (n->flink)
+#define jrb_prev(n)  (n->blink)
 #define jrb_empty(t) (t->flink == t)
 #ifndef jrb_nil
 #define jrb_nil(t) (t)
