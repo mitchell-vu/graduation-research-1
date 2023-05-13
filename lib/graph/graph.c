@@ -36,30 +36,37 @@ void dropGraph(Graph graph)
 //***************************************************************
 //** ADD - DELETE functions *************************************
 
-void addVertex(Graph graph, int id, char *name)
+int compareLongInt(Jval j1, Jval j2)
 {
-  JRB node = jrb_find_int(graph.vertices, id);
+  long i1 = j1.l;
+  long i2 = j2.l;
+  if (i1 > i2)
+    return 1;
+  if (i1 < i2)
+    return -1;
+  return 0;
+}
+
+void addVertex(Graph graph, long id, char *name)
+{
+  JRB node = jrb_find_gen(graph.vertices, new_jval_l(id), compareLongInt);
   if (node == NULL)
   {
     // char *strdup(char *s) returns a pointer to the duplicated string s.
-    jrb_insert_int(graph.vertices, id, new_jval_s(strdup(name)));
+    jrb_insert_gen(graph.vertices, new_jval_l(id), new_jval_s(strdup(name)), compareLongInt);
     // printf("Added vertex (%d)\n", id);
   }
 }
 
 //-----------------------------------------
 
-void addEdge(Graph graph, int v1, int v2, double weight)
+void addEdge(Graph graph, long v1, long v2, double weight)
 {
   if (getVertex(graph, v1) == NULL)
-  {
     addVertex(graph, v1, "");
-  }
 
   if (getVertex(graph, v2) == NULL)
-  {
     addVertex(graph, v2, "");
-  }
 
   JRB node, tree;
   int allowToAdd;
@@ -81,25 +88,19 @@ void addEdge(Graph graph, int v1, int v2, double weight)
 
   if (allowToAdd == BOOL_TRUE)
   {
-
-    node = jrb_find_int(graph.edges, v1);
+    node = jrb_find_gen(graph.edges, new_jval_l(v1), compareLongInt);
     if (node == NULL) // Check xem có sẵn cây trong node chưa
     {
       tree = make_jrb();
-      jrb_insert_int(graph.edges, v1, new_jval_v(tree));
+      jrb_insert_gen(graph.edges, new_jval_l(v1), new_jval_v(tree), compareLongInt);
     }
     else
-    {
       tree = (JRB)jval_v(node->val);
-    }
 
-    jrb_insert_int(tree, v2, new_jval_d(weight));
-    // printf("Added edge (%d) ---%.2f---> (%d)\n", v1, weight, v2);
+    jrb_insert_gen(tree, new_jval_l(v2), new_jval_d(weight), compareLongInt);
 
     if (graph.type == UNDIRECTED)
-    {
       addEdge(graph, v2, v1, weight);
-    }
   }
 }
 
@@ -155,9 +156,9 @@ void updateWeight(Graph graph, int v1, int v2, double newWeight)
 //***************************************************************
 //** QUERY functions ********************************************
 
-void *getVertex(Graph graph, int id)
+char *getVertex(Graph graph, long id)
 {
-  JRB node = jrb_find_int(graph.vertices, id);
+  JRB node = jrb_find_gen(graph.vertices, new_jval_l(id), compareLongInt);
   if (node == NULL)
   {
     return NULL;
@@ -165,6 +166,8 @@ void *getVertex(Graph graph, int id)
   else
     return jval_s(node->val);
 }
+
+//-----------------------------------------
 
 int getVertexId(Graph graph, char *name)
 {
@@ -226,7 +229,7 @@ int getEdgeNum(Graph graph)
   {
     jrb_traverse(v2, graph.vertices)
     {
-      if (hasEdge(graph, jval_i(v1->key), jval_i(v2->key)))
+      if (hasEdge(graph, v1->key, v2->key))
         counter++;
     }
   }
@@ -265,18 +268,18 @@ int indegree(Graph graph, int v, int *output)
 
 //-----------------------------------------
 
-int outdegree(Graph graph, int v, int *output)
+int outdegree(Graph graph, long v, long *output)
 {
   if (getVertex(graph, v) == NULL)
   {
-    printf("Vertex %d not found!\n", v);
+    printf("Vertex %ld not found!\n", v);
     return -1;
   }
 
   JRB tree, node;
   int total;
 
-  node = jrb_find_int(graph.edges, v);
+  node = jrb_find_gen(graph.edges, new_jval_l(v), compareLongInt);
   if (node == NULL)
     return 0;
 
@@ -284,7 +287,7 @@ int outdegree(Graph graph, int v, int *output)
   total = 0;
   jrb_traverse(node, tree)
   {
-    output[total] = jval_i(node->key);
+    output[total] = jval_l(node->key);
     total++;
   }
 
@@ -294,84 +297,23 @@ int outdegree(Graph graph, int v, int *output)
 //***************************************************************
 //** CHECK functions ********************************************
 
-int hasEdge(Graph graph, int v1, int v2)
+int hasEdge(Graph graph, Jval v1, Jval v2)
 {
-  JRB node = jrb_find_int(graph.edges, v1);
+  JRB node = jrb_find_gen(graph.edges, v1, compareLongInt);
   if (node == NULL)
     return BOOL_FALSE;
 
   JRB tree = (JRB)jval_v(node->val);
-  if (jrb_find_int(tree, v2) == NULL)
+  if (jrb_find_gen(tree, v2, compareLongInt) == NULL)
     return BOOL_FALSE;
   else
     return BOOL_TRUE;
 }
 
-//-----------------------------------------
-
-int DAG(Graph graph)
-{
-  int start, notCycles;
-  JRB node;
-
-  jrb_traverse(node, graph.vertices)
-  {
-    start = jval_i(node->key);
-
-    notCycles = DFS_DAG(graph, start);
-    if (notCycles == BOOL_FALSE)
-      return BOOL_FALSE;
-  }
-
-  return BOOL_TRUE;
-}
-
-//-----------------------------------------
-
-int DFS_DAG(Graph graph, int start)
-{
-  // Dùng stack -> dllist chỉ dùng 2 functions:
-  // dll_append( Dllist l, Jval val )                 -->   push()
-  // dll_delete_node( dll_last(Dllist n), Jval val )  -->   pop()
-
-  int visited[1000] = {};
-  int output[100];
-  Dllist node, stack;
-
-  stack = new_dllist();                 // stack init
-  dll_append(stack, new_jval_i(start)); // stack.push(start)
-
-  while (!dll_empty(stack))
-  {
-    node = dll_last(stack);
-    int u = jval_i(node->val); // lấy val của last
-    dll_delete_node(node);     // stack.pop(last)
-
-    if (!visited[u])
-    {
-      visited[u] = BOOL_TRUE;
-
-      int n = outdegree(graph, u, output);
-      for (int i = 0; i < n; i++)
-      {
-        int v = output[i];
-
-        if (v == start)
-          return BOOL_FALSE;
-
-        if (!visited[v])
-          dll_append(stack, new_jval_i(v)); // stack.push()
-      }
-    }
-  }
-
-  return BOOL_TRUE;
-}
-
 //***************************************************************
 //** GRAPH TRAVESAL functions ***********************************
 
-void swapArray(int arr[], int cnt)
+void swapArray(long *arr, int cnt)
 {
   for (int i = 0; i < cnt / 2; i++)
   {
@@ -381,88 +323,64 @@ void swapArray(int arr[], int cnt)
   }
 }
 
-int topologicalSort(Graph graph, int *output)
+int DFS(Graph graph, long graph_size, long start, long stop, long *path)
 {
-  // Dùng stack -> dllist chỉ dùng 2 functions:
-  // dll_append( Dllist l, Jval val )                 -->   enqueue()
-  // dll_delete_node( dll_first(Dllist n), Jval val ) -->   dequeue()
+  int *visited;
+  long *save;
+  long u;
 
-  int indeg[1000], tmp[100];
-  Dllist queue, node;
-  queue = new_dllist();
-
-  JRB vertex;
-  jrb_traverse(vertex, graph.vertices)
-  {
-    int u = jval_i(vertex->key);
-    indeg[u] = indegree(graph, u, tmp);
-
-    if (indeg[u] == 0)                  // Searching for Source nodes
-      dll_append(queue, new_jval_i(u)); // enqueue()
-  }
-
-  int total = 0;
-  while (!dll_empty(queue))
-  {
-    node = dll_first(queue);
-    int u = jval_i(node->val);
-    dll_delete_node(node); // dequeue()
-    output[total++] = u;
-
-    int m = outdegree(graph, u, tmp); // Xoá các nodes đi ra
-                                      // từ source node vừa xoá
-    for (int i = 0; i < m; i++)
-    {
-      int v = tmp[i];
-      indeg[v]--;
-      if (indeg[v] == 0)                  // Put new Source node into queue
-        dll_append(queue, new_jval_i(v)); // enqueue()
-    }
-  }
-  swapArray(output, total);
-  return total;
-}
-
-//-----------------------------------------
-
-int DFS(Graph graph, int start, int stop, int *path)
-{
-  int visited[1000] = {};
-  int output[100];
-  int cnt = 0, u;
-  int save[1000];
+  visited = (int *)malloc((graph_size + 1) * sizeof(int));
+  save = (long *)malloc((graph_size + 1) * sizeof(long));
   Dllist stack = new_dllist();
 
-  dll_append(stack, new_jval_i(start));
+  dll_append(stack, new_jval_l(start));
 
   while (!dll_empty(stack))
   {
     Dllist node = dll_last(stack);
-    u = jval_i(node->val);
+    u = jval_l(node->val);
+    printf("\n\nu = %ld, visited = %d", u, visited[u]);
     dll_delete_node(node);
 
-    if (!visited[u])
+    if (visited[u] != BOOL_TRUE)
     {
-      visited[u] = 1;
+      visited[u] = BOOL_TRUE;
       if (u == stop)
         break;
+      long output[200];
       int n = outdegree(graph, u, output);
+
+      printf(" | n = %d (", n);
       for (int i = 0; i < n; i++)
       {
-        int v = output[i];
-        if (!visited[v])
+        printf(" %ld ", output[i]);
+      }
+      printf(")\n");
+
+      for (int i = 0; i < n; i++)
+      {
+        printf("i = %d | ", i);
+        long v = output[i];
+        printf("v = %ld, visited = %d", v, visited[v]);
+        if (visited[v] != BOOL_TRUE)
         {
           save[v] = u;
-          dll_append(stack, new_jval_i(v));
+          dll_append(stack, new_jval_l(v));
+          printf(", Add save[%ld] = %ld", v, save[v]);
         }
+        printf("\n");
       }
     }
   }
+  printf("\nNow save path\n");
+
+  int cnt = 0;
+
   if (u != stop)
     return 0;
   else
   {
-    int i = stop;
+    long i = stop;
     path[cnt++] = i;
     while (i != start)
     {
@@ -471,139 +389,116 @@ int DFS(Graph graph, int start, int stop, int *path)
     }
     swapArray(path, cnt);
   }
+
+  // Deallocate memory
+  free_dllist(stack);
+  free(save);
+  free(visited);
+
   return cnt;
 }
 
-//-----------------------------------------
-
-int BFS(Graph graph, int start, int stop, int *path)
+int connectedComponents(Graph graph, long graph_vertices_num, char *filename)
 {
-  JRB dist = make_jrb();
-  Dllist node;
+  int *visited;
+  long u;
+  int counter = 0;
+  JRB node;
 
-  Dllist queue = new_dllist();
-  dll_append(queue, new_jval_i(start));
+  char *outputFilename = (char *)malloc(100 * sizeof(char));
+  strcpy(outputFilename, "out/");
+  strcat(outputFilename, filename);
 
-  Dllist trace = new_dllist();
-  dll_append(trace, new_jval_i(start));
-  jrb_insert_int(dist, start, new_jval_v(trace));
+  FILE *fptr;
+  fptr = fopen(outputFilename, "w+");
 
-  int u;
-  while (!dll_empty(queue))
+  if (fptr == NULL)
   {
-    node = dll_first(queue);
-    u = jval_i(node->val);
-    dll_delete_node(node);
+    printf("Error opening file.\n");
+    exit(1);
+  }
 
-    Dllist u_find_path = jval_v(jrb_find_int(dist, u)->val);
-    if (u == stop)
+  visited = (int *)malloc((graph_vertices_num + 1) * sizeof(int));
+  Dllist stack = new_dllist();
+
+  jrb_traverse(node, graph.vertices)
+  {
+    u = jval_l(node->key);
+
+    if (visited[u] != BOOL_TRUE)
     {
-      int cnt = 0;
-      Dllist tmp;
-      dll_traverse(tmp, u_find_path)
+      long *componentArr;
+      int componentSize = 0;
+      long edgeNum = 0;
+      int maxDegree = -INFINITIVE_VALUE;
+      int minDegree = INFINITIVE_VALUE;
+      long maxDegreeNode, minDegreeNode;
+
+      componentArr = (long *)malloc((graph_vertices_num + 1) * sizeof(long));
+      dll_append(stack, new_jval_l(u));
+
+      while (!dll_empty(stack))
       {
-        cnt++;
-        if (path != NULL)
-          path[cnt - 1] = jval_i(tmp->val);
+        Dllist node = dll_last(stack);
+
+        u = jval_l(node->val);
+        dll_delete_node(node);
+
+        if (visited[u] != BOOL_TRUE)
+        {
+          visited[u] = BOOL_TRUE;
+          componentArr[componentSize++] = u;
+
+          long output[200];
+          int n = outdegree(graph, u, output);
+          int visitedEdges = 0;
+
+          if (n > maxDegree)
+          {
+            maxDegree = n;
+            maxDegreeNode = u;
+          }
+          if (n < minDegree)
+          {
+            minDegree = n;
+            minDegreeNode = u;
+          }
+
+          for (int i = 0; i < n; i++)
+          {
+            long v = output[i];
+            if (visited[v] != BOOL_TRUE)
+              dll_append(stack, new_jval_l(v));
+            else
+              visitedEdges++;
+          }
+
+          edgeNum += n - visitedEdges;
+        }
       }
-      return cnt;
-    }
 
-    int output[1000];
-    int num = outdegree(graph, u, output);
+      counter++;
 
-    for (int i = 0; i < num; ++i)
-    {
-      JRB v_find = jrb_find_int(dist, output[i]);
-      if (v_find == NULL)
-      {
-        Dllist current_path = new_dllist();
-        Dllist node;
-        dll_traverse(node, u_find_path)
-            dll_append(current_path, node->val);
+      // Log component information
+      fprintf(fptr, "=================================================\n");
+      fprintf(fptr, "|| Component %-6d                            ||\n", counter);
+      fprintf(fptr, "||---------------------------------------------||\n");
+      fprintf(fptr, "|| %-30s %'12d ||\n", "> No. of vertices:", componentSize);
+      fprintf(fptr, "|| %-30s %'12ld ||\n", "> No. of edges:", edgeNum);
+      fprintf(fptr, "|| > Minimum degree (%12ld):%5s %'5d ||\n", minDegreeNode, "", minDegree);
+      fprintf(fptr, "|| > Maximum degree (%12ld):%5s %'5d ||\n", maxDegreeNode, "", maxDegree);
+      fprintf(fptr, "=================================================\n\n");
 
-        dll_append(current_path, new_jval_i(output[i]));
-        jrb_insert_int(dist, output[i], new_jval_v(current_path));
-        dll_append(queue, new_jval_i(output[i]));
-      }
+      free(componentArr);
     }
   }
 
-  return 0;
-}
+  free(outputFilename);
+  fclose(fptr);
 
-//-----------------------------------------
+  // Deallocate memory
+  free(visited);
+  free_dllist(stack);
 
-double shortestPath(Graph graph, int start, int stop, int *path, int *numVertices)
-{
-  double distance[1000];
-  int previous[1000], u, visit[1000];
-
-  for (int i = 0; i < 1000; i++)
-  {
-    distance[i] = INFINITIVE_VALUE;
-    visit[i] = 0;
-    previous[i] = 0;
-  }
-  distance[start] = 0;
-  previous[start] = start;
-  visit[start] = 1;
-
-  Dllist ptr, queue, node;
-  queue = new_dllist();
-  dll_append(queue, new_jval_i(start));
-
-  while (!dll_empty(queue))
-  {
-    double min = INFINITIVE_VALUE;
-    dll_traverse(ptr, queue)
-    {
-      u = jval_i(ptr->val);
-      if (min > distance[u])
-      {
-        min = distance[u];
-        node = ptr;
-      }
-    }
-
-    u = jval_i(node->val);
-    visit[u] = 1;
-    dll_delete_node(node);
-    if (u == stop)
-      break;
-
-    int output[1000];
-    int n = outdegree(graph, u, output);
-
-    for (int i = 0; i < n; i++)
-    {
-      int v = output[i];
-      double w = getEdgeValue(graph, u, v);
-      if (distance[v] > distance[u] + w)
-      {
-        distance[v] = distance[u] + w;
-        previous[v] = u;
-      }
-      if (visit[v] == 0)
-      {
-        dll_append(queue, new_jval_i(v));
-      }
-    }
-  }
-
-  double distance_s_t = distance[stop];
-  int count = 0;
-  if (distance[stop] != INFINITIVE_VALUE)
-  {
-    path[count++] = stop;
-    while (stop != start)
-    {
-      stop = previous[stop];
-      path[count++] = stop;
-    }
-    *numVertices = count;
-  }
-  swapArray(path, count);
-
-  return distance_s_t;
+  return counter;
 }
