@@ -34,28 +34,30 @@ Knoxville, TN 37996-3450
      865-974-4397
 Fax: 865-974-4404
  */
-#ifndef	_JVAL_H_
-#define	_JVAL_H_
+
+#ifndef _JVAL_H_
+#define _JVAL_H_
 
 /* The Jval -- a type that can hold any 8-byte type */
 
-typedef union {
-    int i;
-    long l;
-    float f;
-    double d;
-    void *v;
-    char *s;
-    char c;
-    unsigned char uc;
-    short sh;
-    unsigned short ush;
-    unsigned int ui;
-    int iarray[2];
-    float farray[2];
-    char carray[8];
-    unsigned char ucarray[8];
-  } Jval;  
+typedef union
+{
+  int i;
+  long l;
+  float f;
+  double d;
+  void *v;
+  char *s;
+  char c;
+  unsigned char uc;
+  short sh;
+  unsigned short ush;
+  unsigned int ui;
+  int iarray[2];
+  float farray[2];
+  char carray[8];
+  unsigned char ucarray[8];
+} Jval;
 
 extern Jval new_jval_i(int);
 extern Jval new_jval_l(long);
@@ -68,11 +70,18 @@ extern Jval new_jval_uc(unsigned char);
 extern Jval new_jval_sh(short);
 extern Jval new_jval_ush(unsigned short);
 extern Jval new_jval_ui(unsigned int);
+
 extern Jval new_jval_iarray(int, int);
 extern Jval new_jval_farray(float, float);
-extern Jval new_jval_carray_nt(char *);  /* Carray is null terminated */
-extern Jval new_jval_carray_nnt(char *);  /* Carray is not null terminated */
-       /* For ucarray -- use carray, because it uses memcpy */
+
+/* Carray is null terminated */
+extern Jval new_jval_carray_nt(char *);
+
+/**
+ * Carray is not null terminated.
+ * For ucarray -- use carray, because it uses memcpy(3).
+ */
+extern Jval new_jval_carray_nnt(char *);
 
 extern Jval JNULL;
 

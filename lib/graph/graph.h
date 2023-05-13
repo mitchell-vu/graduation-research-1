@@ -38,26 +38,34 @@ extern void dropGraph(Graph graph);
 // ADD - DELETE functions
 // ------------------------------------------------------------
 
-extern void addVertex(Graph graph, int id, char *name);
-extern void addEdge(Graph graph, int v1, int v2, double weight);
+extern void addVertex(Graph graph, long id, char *name);
+extern void addEdge(Graph graph, long v1, long v2, double weight);
 extern void deleteVertex(Graph graph, int v);
 extern void deleteEdge(Graph graph, int v1, int v2);
-extern void updateWeight(Graph graph,
-                         int v1,
-                         int v2,
-                         double newWeight);
+extern void updateWeight(Graph graph, int v1, int v2, double newWeight);
 
 // ------------------------------------------------------------
 // QUERY functions
 // ------------------------------------------------------------
 
-extern void *getVertex(Graph graph, // Get vertex value
-                       int id);
-extern int getVertexId(Graph graph,     // Get vertex id by value
-                       char *name);     // Return -1 if not found
-extern double getEdgeValue(Graph graph, // Get egde weight
-                           int v1,
-                           int v2);
+/**
+ * @brief Get the vertex value
+ *
+ * @param graph
+ * @param id
+ * @return Jval
+ */
+extern char *getVertex(Graph graph, long id);
+
+/**
+ * @brief Get the vertex ID
+ *
+ * @param graph
+ * @param name
+ * @return Vertex ID or -1 if not found
+ */
+extern int getVertexId(Graph graph, char *name);
+extern double getEdgeValue(Graph graph, int v1, int v2);
 
 extern int getVertexNum(Graph graph); // Đếm số đỉnh
 extern int getEdgeNum(Graph graph);   // Đếm số cạnh
@@ -67,43 +75,24 @@ extern int indegree(Graph graph, // Cho ra array output
                     int *output);
 
 extern int outdegree(Graph graph, // Cho ra array output
-                     int v,       // các nodes đi ra từ đỉnh v
-                     int *output);
+                     long v,      // các nodes đi ra từ đỉnh v
+                     long *output);
 
 // ------------------------------------------------------------
 // CHECK functions: isDAG? hasEdge? ...
 // ------------------------------------------------------------
 
-extern int hasEdge(Graph graph, // yes - 1 ; no - 0
-                   int v1,
-                   int v2);
+/**
+ * @brief Check if the graph has an edge of given vertices
+ *
+ * @param graph
+ * @param v1
+ * @param v2
+ * @return yes - 1 or no - 0
+ */
+extern int hasEdge(Graph graph, Jval v1, Jval v2);
 
-extern int DAG(Graph graph); // yes - 1 ; no - 0
-                             // Have cycle -> return 0
-
-extern int DFS_DAG(Graph graph, int start);
-
-// ------------------------------------------------------------
-// GRAPH TRAVESAL functions:
-// ------------------------------------------------------------
-
-extern double shortestPath(Graph graph, // Dijisktra using BFS
-                           int start,
-                           int stop,
-                           int *path,
-                           int *numVertices);
-
-extern int DFS(Graph graph,
-               int start,
-               int stop,
-               int *path);
-
-extern int BFS(Graph graph, // Shortest no weight path
-               int start,
-               int stop,
-               int *path);
-
-extern int topologicalSort(Graph graph,  // return total
-                           int *output); // number of nodes
+extern int DFS(Graph graph, long graph_size, long start, long stop, long *path);
+extern int connectedComponents(Graph graph, long graph_size,  char *filename);
 
 #endif

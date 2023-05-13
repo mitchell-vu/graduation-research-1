@@ -32,13 +32,7 @@ Sử dụng ngôn ngữ lập trình C để cài đặt cấu trúc dữ liệu
 
 ## Hướng dẫn sử dụng và bảo trì phần mềm
 
-Chạy chương trình
-
-```bash
-  sh run.sh main
-```
-
-Build lại chương trình với CMake
+Build chương trình với CMake
 
 ```bash
   sh build.sh main
