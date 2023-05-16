@@ -36,6 +36,8 @@ void fetchGraph(Graph graph, char *filename) {
   free(inputFilename);
 }
 
+void printVertex(Jval v) { printf("%3ld ", jval_l(v)); }
+
 int main(void) {
   setlocale(LC_NUMERIC, "en_US.utf-8");
 
@@ -43,8 +45,8 @@ int main(void) {
   char *filename;
   clock_t tic, toc;
 
-  // system("clear");
-  // system("printf '\e[3J'");
+  system("clear");
+  system("printf '\e[3J'");
   currentOption = printStateMenu();
 
   switch (currentOption) {
@@ -104,8 +106,7 @@ int main(void) {
     printGreen("Calculating the number of connected components\n");
 
     tic = clock();
-    int vertexNum = getVertexNum(roadGraph);
-    int componentCount = connectedComponents(roadGraph, (long) 2000000, outputFptr);
+    int componentNum = connectedComponents(roadGraph, outputFptr);
     toc = clock();
     printf("[ 75%%] Calculated the number of connected component"
            " in %.2fs\n",
@@ -115,7 +116,17 @@ int main(void) {
     // Log components specifications to file
     printf("[100%%] ");
     printGreen("Logging connected components specifications\n");
+    int vertexNum = getVertexNum(roadGraph);
     printf("[100%%] Logged connected components specifications into `%s`\n", outputFilename);
+
+    printf("\n> Number of vertices: %-'12d", vertexNum);
+    printf("\n> Number of connected components: %-'12d", componentNum);
+
+    printf("\n> DFS: start from node 1 to 4:\n");
+    DFS(roadGraph, new_jval_l(1), new_jval_l(4), printVertex);
+
+    printf("\n> BFS: start from node 1 to 4:\n");
+    BFS(roadGraph, new_jval_l(1), new_jval_l(4), printVertex);
 
     // Free memory
     free(outputFilename);
@@ -125,5 +136,6 @@ int main(void) {
   } else
     printError("Invalid option!\n");
 
+  printYellow("\n> Exiting...");
   return 0;
 };

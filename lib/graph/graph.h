@@ -3,6 +3,7 @@
 
 #include "../dllist/dllist.h"
 #include "../jrb/jrb.h"
+#include <stdio.h>
 
 #define BOOL_TRUE      1
 #define BOOL_FALSE     0
@@ -138,7 +139,33 @@ extern int hasEdge(Graph graph, Jval v1, Jval v2);
 // GRAPH TRAVESAL functions
 // ------------------------------------------------------------
 
-extern int DFS(Graph graph, long graph_size, long start, long stop, long *path);
-extern int connectedComponents(Graph graph, long graph_size, FILE *output_fptr);
+/**
+ * @brief Breadth-first search
+ *
+ * @param graph
+ * @param start
+ * @param stop
+ * @param func Function to process each vertex in Jval object
+ */
+extern void BFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v));
+
+/**
+ * @brief Depth-first search
+ *
+ * @param graph
+ * @param start
+ * @param stop
+ * @param func Function to process each vertex in Jval object
+ */
+extern void DFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v));
+
+/**
+ * @brief Count number of connected components in a graph
+ *
+ * @param graph
+ * @param output_fptr Logging file pointer
+ * @return Number of connected components
+ */
+extern int connectedComponents(Graph graph, FILE *output_fptr);
 
 #endif

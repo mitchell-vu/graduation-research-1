@@ -294,90 +294,104 @@ int hasEdge(Graph graph, Jval v1, Jval v2) {
 // GRAPH TRAVESAL functions
 // ------------------------------------------------------------
 
-int DFS(Graph graph, long graph_size, long start, long stop, long *path) {
-  int *visited;
-  long *save;
-  long u;
+void BFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v)) {
+  long output[100];
+  JRB node, visited, haveVisited;
 
-  visited = (int *) malloc((graph_size + 1) * sizeof(int));
-  save = (long *) malloc((graph_size + 1) * sizeof(long));
-  Dllist stack = new_dllist();
+  // Initialize visited tree with BOOL_FALSE
+  visited = make_jrb();
+  jrb_traverse(node, graph.vertices) jrb_insert_gen(visited, node->key, new_jval_i(BOOL_FALSE), compareLongInt);
 
-  dll_append(stack, new_jval_l(start));
+  Dllist temp, queue;
+  queue = new_dllist();
+  dll_append(queue, start);
+
+  while (!dll_empty(queue)) {
+    temp = dll_first(queue);
+    Jval vertexId = temp->val;
+    dll_delete_node(temp);
+
+    haveVisited = jrb_find_gen(visited, vertexId, compareLongInt);
+    if (jval_i(haveVisited->val) != BOOL_TRUE) {
+      func(vertexId);
+
+      if (compareLongInt(vertexId, stop) == 0)
+        break;
+
+      haveVisited->val = new_jval_i(BOOL_TRUE);
+      int n = outdegree(graph, vertexId, output);
+
+      for (int i = 0; i < n; i++) {
+        haveVisited = jrb_find_gen(visited, new_jval_l(output[i]), compareLongInt);
+
+        if (jval_i(haveVisited->val) != BOOL_TRUE)
+          dll_append(queue, new_jval_l(output[i]));
+      }
+    }
+  }
+
+  free_dllist(queue);
+  jrb_free_tree(visited);
+}
+
+void DFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v)) {
+  long output[100];
+  JRB node, visited, haveVisited;
+
+  // Initialize visited tree with BOOL_FALSE
+  visited = make_jrb();
+  jrb_traverse(node, graph.vertices) jrb_insert_gen(visited, node->key, new_jval_i(BOOL_FALSE), compareLongInt);
+
+  Dllist temp, stack;
+  stack = new_dllist();
+  dll_append(stack, start);
 
   while (!dll_empty(stack)) {
-    Dllist node = dll_last(stack);
-    u = jval_l(node->val);
-    printf("\n\nu = %ld, visited = %d", u, visited[u]);
-    dll_delete_node(node);
+    temp = dll_last(stack);
+    Jval vertexId = temp->val;
+    dll_delete_node(temp);
 
-    if (visited[u] != BOOL_TRUE) {
-      visited[u] = BOOL_TRUE;
-      if (u == stop)
+    haveVisited = jrb_find_gen(visited, vertexId, compareLongInt);
+    if (jval_i(haveVisited->val) != BOOL_TRUE) {
+      func(vertexId);
+
+      if (compareLongInt(vertexId, stop) == 0)
         break;
-      long output[200];
-      int n = outdegree(graph, new_jval_l(u), output);
 
-      printf(" | n = %d (", n);
-      for (int i = 0; i < n; i++) {
-        printf(" %ld ", output[i]);
-      }
-      printf(")\n");
+      haveVisited->val = new_jval_i(BOOL_TRUE);
+      int n = outdegree(graph, vertexId, output);
 
       for (int i = 0; i < n; i++) {
-        printf("i = %d | ", i);
-        long v = output[i];
-        printf("v = %ld, visited = %d", v, visited[v]);
-        if (visited[v] != BOOL_TRUE) {
-          save[v] = u;
-          dll_append(stack, new_jval_l(v));
-          printf(", Add save[%ld] = %ld", v, save[v]);
-        }
-        printf("\n");
+        haveVisited = jrb_find_gen(visited, new_jval_l(output[i]), compareLongInt);
+
+        if (jval_i(haveVisited->val) != BOOL_TRUE)
+          dll_append(stack, new_jval_l(output[i]));
       }
     }
   }
-  printf("\nNow save path\n");
 
-  int pathCount = 0;
-
-  if (u != stop)
-    return 0;
-  else {
-    long i = stop;
-    path[pathCount++] = i;
-    while (i != start) {
-      i = save[i];
-      path[pathCount++] = i;
-    }
-    reverseArray(path, pathCount);
-  }
-
-  // Deallocate memory
   free_dllist(stack);
-  free(save);
-  free(visited);
-
-  return pathCount;
+  jrb_free_tree(visited);
 }
 
 //-----------------------------------------
 
-int connectedComponents(Graph graph, long graph_vertices_num, FILE *output_fptr) {
-  int *visited;
+int connectedComponents(Graph graph, FILE *output_fptr) {
   long u;
   long output[200];
   int counter = 0;
-  JRB node;
+  JRB node, visited;
 
-  visited = (int *) malloc((graph_vertices_num + 1) * sizeof(int));
+  visited = make_jrb();
+  jrb_traverse(node, graph.vertices) { jrb_insert_gen(visited, node->key, new_jval_i(BOOL_FALSE), compareLongInt); }
   Dllist stack = new_dllist();
 
+  JRB haveVisited;
   jrb_traverse(node, graph.vertices) {
     u = jval_l(node->key);
 
-    if (visited[u] != BOOL_TRUE) {
-      long *componentArr;
+    haveVisited = jrb_find_gen(visited, new_jval_l(u), compareLongInt);
+    if (jval_i(haveVisited->val) != BOOL_TRUE) {
       int componentSize = 0;
       long edgeNum = 0;
       int maxDegree = -INFINITIVE_VALUE;
@@ -391,9 +405,10 @@ int connectedComponents(Graph graph, long graph_vertices_num, FILE *output_fptr)
 
         u = jval_l(last->val);
         dll_delete_node(last);
+        haveVisited = jrb_find_gen(visited, new_jval_l(u), compareLongInt);
 
-        if (visited[u] != BOOL_TRUE) {
-          visited[u] = BOOL_TRUE;
+        if (jval_i(haveVisited->val) != BOOL_TRUE) {
+          haveVisited->val = new_jval_i(BOOL_TRUE);
           componentSize++;
 
           int n = outdegree(graph, new_jval_l(u), output);
@@ -410,7 +425,8 @@ int connectedComponents(Graph graph, long graph_vertices_num, FILE *output_fptr)
 
           for (int i = 0; i < n; i++) {
             long v = output[i];
-            if (visited[v] != BOOL_TRUE)
+            haveVisited = jrb_find_gen(visited, new_jval_l(v), compareLongInt);
+            if (jval_i(haveVisited->val) != BOOL_TRUE)
               dll_append(stack, new_jval_l(v));
             else
               visitedEdges++;
@@ -435,7 +451,7 @@ int connectedComponents(Graph graph, long graph_vertices_num, FILE *output_fptr)
   }
 
   // Deallocate memory
-  free(visited);
+  jrb_free_tree(visited);
   free_dllist(stack);
 
   return counter;
