@@ -26,12 +26,13 @@ void fetchGraph(Graph graph, char *filename) {
   }
 
   while (get_line(is) >= 0) {
+    // Skip comments
     if (is->NF == 1 || is->fields[0][0] == '#')
       continue;
-    else {
+    else
       addEdge(graph, new_jval_l(atol(is->fields[0])), new_jval_l(atol(is->fields[1])), 1);
-    }
   }
+
   jettison_inputstruct(is);
   free(inputFilename);
 }
@@ -45,97 +46,101 @@ int main(void) {
   char *filename;
   clock_t tic, toc;
 
-  system("clear");
-  system("printf '\e[3J'");
-  currentOption = printStateMenu();
+  do {
+    system("clear");
+    system("printf '\e[3J'");
+    currentOption = printStateMenu();
 
-  switch (currentOption) {
-  case 0:
-    filename = "example.txt";
-    break;
-  case 1:
-    filename = "roadNet-CA.txt";
-    break;
-  case 2:
-    filename = "roadNet-PA.txt";
-    break;
-  case 3:
-    filename = "roadNet-TX.txt";
-    break;
-  default:
-    break;
-  }
-
-  char *outputFilename = (char *) malloc(100 * sizeof(char));
-  strcpy(outputFilename, "out/");
-  strcat(outputFilename, filename);
-
-  FILE *outputFptr;
-  outputFptr = fopen(outputFilename, "w+");
-
-  if (outputFptr == NULL) {
-    printf("Error opening file.\n");
-    exit(1);
-  }
-
-  if (currentOption <= 4) {
-    if (currentOption == 4) {
-      printYellow("> Exiting...\n");
-      return 0;
+    switch (currentOption) {
+    case 0:
+      filename = "example.txt";
+      break;
+    case 1:
+      filename = "roadNet-CA.txt";
+      break;
+    case 2:
+      filename = "roadNet-PA.txt";
+      break;
+    case 3:
+      filename = "roadNet-TX.txt";
+      break;
+    default:
+      break;
     }
 
-    // ------------------------------------------------------------
-    // Fetch graph from file
-    printf("[ 25%%] ");
-    char *msg = (char *) malloc(200 * sizeof(char));
-    strcpy(msg, "Building graph from file `data/");
-    strcat(msg, filename);
-    strcat(msg, "`\n");
-    printGreen(msg);
-    free(msg);
+    char *outputFilename = (char *) malloc(100 * sizeof(char));
+    strcpy(outputFilename, "out/");
+    strcat(outputFilename, filename);
 
-    tic = clock();
-    Graph roadGraph = createGraph(UNDIRECTED);
-    fetchGraph(roadGraph, filename);
-    toc = clock();
-    printf("[ 25%%] Built graph in %.2fs\n", (double) (toc - tic) / CLOCKS_PER_SEC);
+    FILE *outputFptr;
+    outputFptr = fopen(outputFilename, "w+");
 
-    // ------------------------------------------------------------
-    // Calculate the number of connected components
-    printf("[ 75%%] ");
-    printGreen("Calculating the number of connected components\n");
+    if (outputFptr == NULL) {
+      printf("Error opening file.\n");
+      exit(1);
+    }
 
-    tic = clock();
-    int componentNum = connectedComponents(roadGraph, outputFptr);
-    toc = clock();
-    printf("[ 75%%] Calculated the number of connected component"
-           " in %.2fs\n",
-           (double) (toc - tic) / CLOCKS_PER_SEC);
+    if (currentOption <= 4) {
+      if (currentOption == 4) {
+        printYellow("> Exiting...\n");
+        return 0;
+      }
 
-    // ------------------------------------------------------------
-    // Log components specifications to file
-    printf("[100%%] ");
-    printGreen("Logging connected components specifications\n");
-    int vertexNum = getVertexNum(roadGraph);
-    printf("[100%%] Logged connected components specifications into `%s`\n", outputFilename);
+      // ------------------------------------------------------------
+      // Fetch graph from file
+      printf("[ 25%%] ");
+      char *msg = (char *) malloc(200 * sizeof(char));
+      strcpy(msg, "Building graph from file `data/");
+      strcat(msg, filename);
+      strcat(msg, "`\n");
+      printGreen(msg);
+      free(msg);
 
-    printf("\n> Number of vertices: %-'12d", vertexNum);
-    printf("\n> Number of connected components: %-'12d", componentNum);
+      tic = clock();
+      Graph roadGraph = createGraph(UNDIRECTED);
+      fetchGraph(roadGraph, filename);
+      toc = clock();
+      printf("[ 25%%] Built graph in %.2fs\n", (double) (toc - tic) / CLOCKS_PER_SEC);
 
-    printf("\n> DFS: start from node 1 to 4:\n");
-    DFS(roadGraph, new_jval_l(1), new_jval_l(4), printVertex);
+      // ------------------------------------------------------------
+      // Calculate the number of connected components
+      printf("[ 75%%] ");
+      printGreen("Calculating the number of connected components\n");
 
-    printf("\n> BFS: start from node 1 to 4:\n");
-    BFS(roadGraph, new_jval_l(1), new_jval_l(4), printVertex);
+      tic = clock();
+      int componentNum = connectedComponents(roadGraph, outputFptr);
+      toc = clock();
+      printf("[ 75%%] Calculated the number of connected component"
+             " in %.2fs\n",
+             (double) (toc - tic) / CLOCKS_PER_SEC);
 
-    // Free memory
-    free(outputFilename);
-    // free(outputFptr);
-    dropGraph(roadGraph);
+      // ------------------------------------------------------------
+      // Log components specifications to file
+      printf("[100%%] ");
+      printGreen("Logging connected components specifications\n");
+      int vertexNum = getVertexNum(roadGraph);
+      printf("[100%%] Logged connected components specifications into `%s`\n", outputFilename);
 
-  } else
-    printError("Invalid option!\n");
+      printf("\n> Number of vertices: %-'12d", vertexNum);
+      printf("\n> Number of connected components: %-'12d\n", componentNum);
 
-  printYellow("\n> Exiting...");
+      // printf("\n> DFS: start from node 1 to 4:\n");
+      // DFS(roadGraph, new_jval_l(1), new_jval_l(4), printVertex);
+
+      // printf("\n> BFS: start from node 1 to 4:\n");
+      // BFS(roadGraph, new_jval_l(1), new_jval_l(4), printVertex);
+
+      // Free memory
+      free(outputFilename);
+      fclose(outputFptr);
+      dropGraph(roadGraph);
+
+      printWait();
+    } else {
+      printError("Invalid option!\n");
+      printWait();
+    }
+  } while (currentOption != 4);
+
   return 0;
 };

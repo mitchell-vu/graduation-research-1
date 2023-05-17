@@ -37,3 +37,17 @@ Build chương trình với CMake
 ```bash
   sh build.sh main
 ```
+
+Kiểm tra memory leaks trên macOS:
+
+```bash
+  leaks -atExit -- ./build/main
+```
+
+The leaks command exits with one of the following values:
+
+| Status | Meaning                          |
+| ------ | -------------------------------- |
+| `0`    | No leaks were detected.          |
+| `1`    | One or more leaks were detected. |
+| `> 1`  | An error occurred.               |

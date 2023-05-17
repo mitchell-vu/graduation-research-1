@@ -46,6 +46,7 @@ void dropGraph(Graph graph) {
   jrb_free_tree(graph.edges);
 
   // Free vertices tree
+  jrb_traverse(node, graph.vertices) free(jval_v(node->val));
   jrb_free_tree(graph.vertices);
 }
 
@@ -381,10 +382,11 @@ int connectedComponents(Graph graph, FILE *output_fptr) {
   long output[200];
   int counter = 0;
   JRB node, visited;
+  Dllist last, stack;
 
   visited = make_jrb();
   jrb_traverse(node, graph.vertices) { jrb_insert_gen(visited, node->key, new_jval_i(BOOL_FALSE), compareLongInt); }
-  Dllist stack = new_dllist();
+  stack = new_dllist();
 
   JRB haveVisited;
   jrb_traverse(node, graph.vertices) {
@@ -401,7 +403,7 @@ int connectedComponents(Graph graph, FILE *output_fptr) {
       dll_append(stack, new_jval_l(u));
 
       while (!dll_empty(stack)) {
-        Dllist last = dll_last(stack);
+        last = dll_last(stack);
 
         u = jval_l(last->val);
         dll_delete_node(last);
