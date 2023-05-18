@@ -9,19 +9,17 @@
 #include "lib/print/print.h"
 
 void fetchGraph(Graph graph, char *filename) {
-  char *inputFilename = (char *) malloc(100 * sizeof(char));
-  strcpy(inputFilename, "data/");
-  strcat(inputFilename, filename);
+  char inputFilename[200];
+  sprintf(inputFilename, "data/%s", filename);
 
   IS is = new_inputstruct(inputFilename);
 
   if (is == NULL) {
-    char *errorMsg = (char *) malloc(100 * sizeof(char));
-    strcpy(errorMsg, "Cannot read data from file `");
-    strcat(errorMsg, filename);
-    strcat(errorMsg, "`\n");
+    char errorMsg[200];
+    sprintf(errorMsg, "Cannot read data from file `%s`\n", filename);
     printError(errorMsg);
-    free(errorMsg);
+
+    jettison_inputstruct(is);
     exit(1);
   }
 
@@ -34,7 +32,6 @@ void fetchGraph(Graph graph, char *filename) {
   }
 
   jettison_inputstruct(is);
-  free(inputFilename);
 }
 
 void printVertex(Jval v) { printf("%3ld ", jval_l(v)); }
@@ -53,7 +50,7 @@ int main(void) {
 
     switch (currentOption) {
     case 0:
-      filename = "example.txt";
+      filename = "examples.txt";
       break;
     case 1:
       filename = "roadNet-CA.txt";
@@ -68,39 +65,36 @@ int main(void) {
       break;
     }
 
-    char *outputFilename = (char *) malloc(100 * sizeof(char));
-    strcpy(outputFilename, "out/");
-    strcat(outputFilename, filename);
-
-    FILE *outputFptr;
-    outputFptr = fopen(outputFilename, "w+");
-
-    if (outputFptr == NULL) {
-      printf("Error opening file.\n");
-      exit(1);
-    }
-
+    // If valid option was chosen
     if (currentOption <= 4) {
       if (currentOption == 4) {
         printYellow("> Exiting...\n");
-        return 0;
+        break;
+      }
+
+      char outputFilename[200];
+      sprintf(outputFilename, "out/%s", filename);
+
+      FILE *outputFptr;
+      outputFptr = fopen(outputFilename, "w+");
+
+      if (outputFptr == NULL) {
+        printf("Error opening file.\n");
+        exit(1);
       }
 
       // ------------------------------------------------------------
       // Fetch graph from file
       printf("[ 25%%] ");
-      char *msg = (char *) malloc(200 * sizeof(char));
-      strcpy(msg, "Building graph from file `data/");
-      strcat(msg, filename);
-      strcat(msg, "`\n");
+      char msg[200];
+      sprintf(msg, "Building graph from file `data/%s`\n", filename);
       printGreen(msg);
-      free(msg);
 
       tic = clock();
       Graph roadGraph = createGraph(UNDIRECTED);
       fetchGraph(roadGraph, filename);
       toc = clock();
-      printf("[ 25%%] Built graph in %.2fs\n", (double) (toc - tic) / CLOCKS_PER_SEC);
+      printf("[ 25%%] Built graph in %.3fs\n", (double) (toc - tic) / CLOCKS_PER_SEC);
 
       // ------------------------------------------------------------
       // Calculate the number of connected components
@@ -111,7 +105,7 @@ int main(void) {
       int componentNum = connectedComponents(roadGraph, outputFptr);
       toc = clock();
       printf("[ 75%%] Calculated the number of connected component"
-             " in %.2fs\n",
+             " in %.3fs\n",
              (double) (toc - tic) / CLOCKS_PER_SEC);
 
       // ------------------------------------------------------------
@@ -131,7 +125,6 @@ int main(void) {
       // BFS(roadGraph, new_jval_l(1), new_jval_l(4), printVertex);
 
       // Free memory
-      free(outputFilename);
       fclose(outputFptr);
       dropGraph(roadGraph);
 
@@ -140,6 +133,7 @@ int main(void) {
       printError("Invalid option!\n");
       printWait();
     }
+
   } while (currentOption != 4);
 
   return 0;
