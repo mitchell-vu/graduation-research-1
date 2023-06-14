@@ -295,7 +295,8 @@ int hasEdge(Graph graph, Jval v1, Jval v2) {
 // GRAPH TRAVESAL functions
 // ------------------------------------------------------------
 
-void BFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v)) {
+int BFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v)) {
+  int count = 0;
   long output[100];
   JRB node, visited, haveVisited;
 
@@ -319,6 +320,7 @@ void BFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v)) {
       if (compareLongInt(vertexId, stop) == 0)
         break;
 
+      count++;
       haveVisited->val = new_jval_i(BOOL_TRUE);
       int n = outdegree(graph, vertexId, output);
 
@@ -333,9 +335,11 @@ void BFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v)) {
 
   free_dllist(queue);
   jrb_free_tree(visited);
+  return count;
 }
 
-void DFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v)) {
+int DFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v)) {
+  int count = 0;
   long output[100];
   JRB node, visited, haveVisited;
 
@@ -359,6 +363,7 @@ void DFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v)) {
       if (compareLongInt(vertexId, stop) == 0)
         break;
 
+      count++;
       haveVisited->val = new_jval_i(BOOL_TRUE);
       int n = outdegree(graph, vertexId, output);
 
@@ -373,6 +378,7 @@ void DFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v)) {
 
   free_dllist(stack);
   jrb_free_tree(visited);
+  return count;
 }
 
 //-----------------------------------------

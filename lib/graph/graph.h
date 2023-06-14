@@ -146,8 +146,9 @@ extern int hasEdge(Graph graph, Jval v1, Jval v2);
  * @param start
  * @param stop
  * @param func Function to process each vertex in Jval object
+ * @return Number of vertecies traversed
  */
-extern void BFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v));
+extern int BFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v));
 
 /**
  * @brief Depth-first search
@@ -156,8 +157,9 @@ extern void BFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v));
  * @param start
  * @param stop
  * @param func Function to process each vertex in Jval object
+ * @return Number of vertecies traversed
  */
-extern void DFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v));
+extern int DFS(Graph graph, Jval start, Jval stop, void (*func)(Jval v));
 
 /**
  * @brief Count number of connected components in a graph

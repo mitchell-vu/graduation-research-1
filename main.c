@@ -34,45 +34,108 @@ void fetchGraph(Graph graph, char *filename) {
   jettison_inputstruct(is);
 }
 
-void printVertex(Jval v) { printf("%3ld ", jval_l(v)); }
+void printVertex(Jval v) { printf("Visiting [%ld]...\n", jval_l(v)); }
 
 int main(void) {
   setlocale(LC_NUMERIC, "en_US.utf-8");
 
-  int currentOption;
-  char *filename;
+  int currentOption, counter;
+  char filename[100];
+  char outputFilename[200];
+  long startVertex, endVertex;
   clock_t tic, toc;
 
+  system("clear");
+  system("printf '\e[3J'");
+
+  printf("> Enter input file name in `data/` folder: ");
+  scanf("%s", filename);
+
+  printf("> ");
+  char msg[200];
+  sprintf(msg, "Building graph from file `data/%s`\n", filename);
+  printGreen(msg);
+
+  tic = clock();
+  Graph roadGraph = createGraph(UNDIRECTED);
+  fetchGraph(roadGraph, filename);
+  toc = clock();
+  printf("> Built graph in %.3fs\n", (double) (toc - tic) / CLOCKS_PER_SEC);
+
+  printWait();
+
   do {
-    system("clear");
-    system("printf '\e[3J'");
-    currentOption = printStateMenu();
+    // system("clear");
+    // system("printf '\e[3J'");
+    currentOption = printActionsMenu();
 
     switch (currentOption) {
-    case 0:
-      filename = "examples.txt";
-      break;
+    // ------------------------------------------------------------
+    // Display graph specifications
     case 1:
-      filename = "roadNet-CA.txt";
+      printf("\n> Graph Specifications:\n");
+      printGreen("* Name: ");
+      printf("%s\n", filename);
+      printGreen("* Number of vertices: ");
+      printf("%-'12d\n", getVertexNum(roadGraph));
+      printGreen("* Type: ");
+      printf("%s\n", roadGraph.type == DIRECTED ? "Directed" : "Undirected");
+      printWait();
       break;
+
+    // ------------------------------------------------------------
+    // Depth First Search
     case 2:
-      filename = "roadNet-PA.txt";
+      printf("> Enter starting vertex: ");
+      scanf("%ld", &startVertex);
+      printf("> Enter ending vertex: ");
+      scanf("%ld", &endVertex);
+
+      tic = clock();
+      printf("> Depth First Search from [%ld] -> [%ld]:\n", startVertex, endVertex);
+      counter = DFS(roadGraph, new_jval_l(startVertex), new_jval_l(endVertex), printVertex);
+      toc = clock();
+
+      printGreen("\n\n> Depth First Search from ");
+      printf("[%ld]", startVertex);
+      printGreen(" -> ");
+      printf("[%ld]", endVertex);
+      printGreen(" finished in ");
+      printf("%.3fs\n", (double) (toc - tic) / CLOCKS_PER_SEC);
+      printGreen("> Traversed vertices number: ");
+      printf("%-'12d\n", counter);
+
+      printWait();
       break;
+
+    // ------------------------------------------------------------
+    // Breadth First Search
     case 3:
-      filename = "roadNet-TX.txt";
-      break;
-    default:
-      break;
-    }
+      printf("> Enter starting vertex: ");
+      scanf("%ld", &startVertex);
+      printf("> Enter ending vertex: ");
+      scanf("%ld", &endVertex);
 
-    // If valid option was chosen
-    if (currentOption <= 4) {
-      if (currentOption == 4) {
-        printYellow("> Exiting...\n");
-        break;
-      }
+      tic = clock();
+      printf("> Breadth First Search from [%ld] -> [%ld]:\n", startVertex, endVertex);
+      counter = BFS(roadGraph, new_jval_l(startVertex), new_jval_l(endVertex), printVertex);
+      toc = clock();
 
-      char outputFilename[200];
+      printGreen("\n\n> Breadth First Search from ");
+      printf("[%ld]", startVertex);
+      printGreen(" -> ");
+      printf("[%ld]", endVertex);
+      printGreen(" finished in ");
+      printf("%.3fs\n", (double) (toc - tic) / CLOCKS_PER_SEC);
+      printGreen("> Traversed vertices number: ");
+      printf("%-'12d\n", counter);
+
+      printWait();
+      break;
+
+    // ------------------------------------------------------------
+    // Calculate the number of connected components
+    case 4:
       sprintf(outputFilename, "out/%s", filename);
 
       FILE *outputFptr;
@@ -80,61 +143,39 @@ int main(void) {
 
       if (outputFptr == NULL) {
         printf("Error opening file.\n");
-        exit(1);
+        break;
       }
 
-      // ------------------------------------------------------------
-      // Fetch graph from file
-      printf("[ 25%%] ");
-      char msg[200];
-      sprintf(msg, "Building graph from file `data/%s`\n", filename);
-      printGreen(msg);
-
-      tic = clock();
-      Graph roadGraph = createGraph(UNDIRECTED);
-      fetchGraph(roadGraph, filename);
-      toc = clock();
-      printf("[ 25%%] Built graph in %.3fs\n", (double) (toc - tic) / CLOCKS_PER_SEC);
-
-      // ------------------------------------------------------------
-      // Calculate the number of connected components
-      printf("[ 75%%] ");
-      printGreen("Calculating the number of connected components\n");
+      printGreen("> Calculating the number of connected components\n");
 
       tic = clock();
       int componentNum = connectedComponents(roadGraph, outputFptr);
       toc = clock();
-      printf("[ 75%%] Calculated the number of connected component"
-             " in %.3fs\n",
-             (double) (toc - tic) / CLOCKS_PER_SEC);
 
-      // ------------------------------------------------------------
-      // Log components specifications to file
-      printf("[100%%] ");
-      printGreen("Logging connected components specifications\n");
-      int vertexNum = getVertexNum(roadGraph);
-      printf("[100%%] Logged connected components specifications into `%s`\n", outputFilename);
+      printGreen("> Calculated the number of connected component in ");
+      printf("%.3fs\n", (double) (toc - tic) / CLOCKS_PER_SEC);
 
-      printf("\n> Number of vertices: %-'12d", vertexNum);
+      printf("> Logged connected components specifications into `%s`\n", outputFilename);
       printf("\n> Number of connected components: %-'12d\n", componentNum);
 
-      // printf("\n> DFS: start from node 1 to 4:\n");
-      // DFS(roadGraph, new_jval_l(1), new_jval_l(4), printVertex);
-
-      // printf("\n> BFS: start from node 1 to 4:\n");
-      // BFS(roadGraph, new_jval_l(1), new_jval_l(4), printVertex);
-
-      // Free memory
       fclose(outputFptr);
-      dropGraph(roadGraph);
-
       printWait();
-    } else {
+      break;
+
+    // ------------------------------------------------------------
+    // Exit the program
+    case 5:
+      printYellow("> Exiting...\n");
+      break;
+
+    // ------------------------------------------------------------
+    // Invalid options
+    default:
       printError("Invalid option!\n");
-      printWait();
+      break;
     }
+  } while (currentOption != 5);
 
-  } while (currentOption != 4);
-
+  dropGraph(roadGraph);
   return 0;
 };

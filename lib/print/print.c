@@ -16,33 +16,30 @@ void clear_buffer() {
 extern void printWait(void) {
   int enter = 0;
 
-  printYellow("\n> Press ENTER to continue...");
+  printYellow("\n> Press ENTER to continue...\n");
   while (enter != '\r' && enter != '\n') {
     enter = getchar();
   }
 }
 
-int printStateMenu(void) {
+int printActionsMenu(void) {
   char menu[][100] = {
-      "California (CA)",
-      "Pennsylvania (PA)",
-      "Texas (TX)",
-      "Exit",
+      "Graph Specifications", "Depth First Search", "Breath First Search", "Count Connected Components", "Exit",
   };
   int choice;
 
   // Each row of menu has 58 characters
-  printGreen("\n---------------------- STATE MENU ------------------------\n");
+  printGreen("\n--------------------- ACTIONS MENU -----------------------\n");
   printf(COLOR_GREEN "| %-54s |\n", "");
 
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 5; i++) {
     printf("| " COLOR_RESET "%-50s [%d]" COLOR_GREEN " |\n", menu[i], i + 1);
   }
 
   printf("| %-54s |\n", "");
   printGreen("----------------------------------------------------------\n\n");
 
-  printf("> Choose a state: ");
+  printf("> Choose an action: ");
   scanf("%d", &choice);
   clear_buffer();
 

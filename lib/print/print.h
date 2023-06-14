@@ -17,6 +17,6 @@ extern void printYellow(char *string);
 extern void printError(char *string);
 
 extern void printWait();
-extern int printStateMenu();
+extern int printActionsMenu();
 
 #endif
